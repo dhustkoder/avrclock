@@ -12,12 +12,12 @@
 volatile unsigned long timer1_millis;
 long milliseconds_since;
  
-ISR (TIMER1_COMPA_vect)
+ISR(TIMER1_COMPA_vect)
 {
     timer1_millis++;
 }
 
-unsigned long millis ()
+unsigned long millis()
 {
     unsigned long millis_return;
 
@@ -32,18 +32,23 @@ unsigned long millis ()
 
 noreturn void main(void)
 {
-	unsigned freq = 1;
-	unsigned long lowcnt = 0;
+	unsigned highfreq = 40;
+	unsigned lowfreq = 1;
 	unsigned long highcnt = 0;
+	unsigned long lowcnt = 0;
 
 	// setup ports
-	DDRD |= 0x01<<PD6; // low clock (out)
 	DDRD |= 0x01<<PD7; // high clock (out)
-	DDRD &= ~(0x01<<PD5); // clock ctrl (in)
+	DDRD |= 0x01<<PD6; // high clock (out)
+	DDRD |= 0x01<<PD5; // high clock negated (out)
+	DDRD |= 0x01<<PD4; // low clock (out)
+	DDRD &= ~(0x01<<PD3); // high clock ctrl (in)
+	DDRD &= ~(0x01<<PD2); // low clock ctrl (in)
 
-	PORTD &= ~(0x01<<PD6); // low
-	PORTD &= ~(0x01<<PD7); // low
+	PORTD &= ~(0x01<<PD3); // off
+	PORTD &= ~(0x01<<PD2); // off
 	PORTD |= 0x01<<PD5; // pull up
+	PORTD |= 0x01<<PD4; // pull up
 
 	// setup interrupts milli counter
 	// CTC mode, Clock/8
@@ -60,29 +65,35 @@ noreturn void main(void)
 	// Now enable global interrupts
 	sei();
 
-
 	for (;;) {
-		const unsigned lowclk = freq;
-		const unsigned highclk = freq + 40;
-
-		if ((millis() - lowcnt) > (1000 / lowclk)) {
-			if (!(PORTD&(0x01<<PD6)))
-				PORTD |= 0x01<<PD6;
-			else
-				PORTD &= ~(0x01<<PD6);
-			lowcnt = millis();
-		}
+		const unsigned lowclk = lowfreq;
+		const unsigned highclk = highfreq;
 
 		if ((millis() - highcnt) > (1000 / highclk)) {
-			if (!(PORTD&(0x01<<PD7)))
+			if (!(PORTD&(0x01<<PD7))) {
 				PORTD |= 0x01<<PD7;
-			else
+				PORTD |= 0x01<<PD6;
+				PORTD &= ~(0x01<<PD5);
+			} else {
 				PORTD &= ~(0x01<<PD7);
+				PORTD &= ~(0x01<<PD6);
+				PORTD |= 0x01<<PD5;
+			}
 			highcnt = millis();
 		}
 
-		if (!(PIND&(0x01<<PD5)))
-			freq += 1;
+		if ((millis() - lowcnt) > (1000 / lowclk)) {
+			if (!(PORTD&(0x01<<PD4)))
+				PORTD |= 0x01<<PD4;
+			else
+				PORTD &= ~(0x01<<PD4);
+			lowcnt = millis();
+		}
+
+		if (!(PIND&(0x01<<PD3)))
+			highfreq += 1;
+		if (!(PIND&(0x01<<PD2)))
+			lowfreq += 1;
 	}
 
 }

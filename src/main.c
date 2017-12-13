@@ -1,10 +1,10 @@
 #include <stdbool.h>
 #include <stdnoreturn.h>
 #include <avr/io.h>
-#include <util/delay.h>
 #include <avr/interrupt.h>
-#include <util/atomic.h>
- 
+#include <util/delay.h>
+#include <util/atomic.h> 
+
 // Calculate the value needed for 
 // the CTC match value in OCR1A.
 #define CTC_MATCH_OVERFLOW ((unsigned long)((F_CPU / 1000ul) / 8ul))

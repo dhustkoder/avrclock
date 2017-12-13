@@ -10,7 +10,7 @@
 #define CTC_MATCH_OVERFLOW ((unsigned long)((F_CPU / 1000ul) / 8ul))
 
 volatile unsigned long timer1_millis;
-long milliseconds_since;
+
  
 ISR(TIMER1_COMPA_vect)
 {
@@ -93,9 +93,9 @@ noreturn void main(void)
 		}
 
 		if (!(PIND&(0x01<<PD3)))
-			highfreq += 1;
+			++highfreq;
 		if (!(PIND&(0x01<<PD2)))
-			lowfreq += 1;
+			++lowfreq;
 	}
 
 }

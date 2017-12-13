@@ -7,7 +7,7 @@
  
 // Calculate the value needed for 
 // the CTC match value in OCR1A.
-#define CTC_MATCH_OVERFLOW ((F_CPU / 1000ul) / 8ul) 
+#define CTC_MATCH_OVERFLOW ((unsigned long)((F_CPU / 1000ul) / 8ul))
 
 volatile unsigned long timer1_millis;
 long milliseconds_since;
@@ -32,8 +32,8 @@ unsigned long millis()
 
 noreturn void main(void)
 {
-	unsigned highfreq = 40;
-	unsigned lowfreq = 1;
+	unsigned long highfreq = 40;
+	unsigned long lowfreq = 1;
 	unsigned long highcnt = 0;
 	unsigned long lowcnt = 0;
 
@@ -45,10 +45,12 @@ noreturn void main(void)
 	DDRD &= ~(0x01<<PD3); // high clock ctrl (in)
 	DDRD &= ~(0x01<<PD2); // low clock ctrl (in)
 
-	PORTD &= ~(0x01<<PD3); // off
-	PORTD &= ~(0x01<<PD2); // off
-	PORTD |= 0x01<<PD5; // pull up
-	PORTD |= 0x01<<PD4; // pull up
+	PORTD &= ~(0x01<<PD7); // off
+	PORTD &= ~(0x01<<PD6); // off
+	PORTD |=   0x01<<PD5;  // on
+	PORTD &= ~(0x01<<PD4); // off
+	PORTD |= 0x01<<PD3; // pull up
+	PORTD |= 0x01<<PD2; // pull up
 
 	// setup interrupts milli counter
 	// CTC mode, Clock/8
@@ -66,8 +68,8 @@ noreturn void main(void)
 	sei();
 
 	for (;;) {
-		const unsigned lowclk = lowfreq;
-		const unsigned highclk = highfreq;
+		const unsigned long lowclk = lowfreq;
+		const unsigned long highclk = highfreq;
 
 		if ((millis() - highcnt) > (1000 / highclk)) {
 			if (!(PORTD&(0x01<<PD7))) {
